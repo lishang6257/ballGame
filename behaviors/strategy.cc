@@ -3,6 +3,20 @@
 
 extern int agentBodyType;
 
+
+// Example usage of the roboviz drawing system and RVSender in rvdraw.cc.
+    // Draw agent positions and orientations
+    /*
+    worldModel->getRVSender()->clearStaticDrawings();
+    VecPosition pos = worldModel->getMyPosition();
+    VecPosition dir = VecPosition(1,0,0);
+    dir = dir.rotateAboutZ(-worldModel->getMyAngDeg());
+    worldModel->getRVSender()->drawPoint(pos.getX(), pos.getY(), 10);
+    worldModel->getRVSender()->drawLine(pos.getX(), pos.getY(), pos.getX()+dir.getX(), pos.getY()+dir.getY());
+    */
+
+
+
 /*
  * Real game beaming.
  * Filling params x y angle
@@ -69,7 +83,9 @@ SkillType NaoBehavior::selectSkill() {
 
     // Demo behavior where players form a rotating circle and kick the ball
     // back and forth
-    return demoKickingCircle();
+    // return demoKickingCircle();
+      setFallSkillTime(SKILL_FALL_SPLIT,3);
+      return SKILL_FALL_SPLIT;
 }
 
 
@@ -126,7 +142,7 @@ SkillType NaoBehavior::demoKickingCircle() {
 
         if (me.getDistanceTo(target) < .25 && abs(localCenterAngle) <= 10) {
             // Close enough to desired position and orientation so just stand
-            return SKILL_SPLIT;
+            return SKILL_FALL_SPLIT;
         } else if (me.getDistanceTo(target) < .5) {
             // Close to desired position so start turning to face center
             return goToTargetRelative(worldModel->g2l(target), localCenterAngle);

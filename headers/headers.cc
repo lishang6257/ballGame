@@ -73,8 +73,8 @@ EnumParser<SkillType>::EnumParser()
     string2enum["SKILL_NONE"] = SKILL_NONE;
     enum2String[SKILL_NONE] = "SKILL_NONE";
 
-    string2enum["SKILL_SPLIT"] = SKILL_SPLIT;
-    enum2String[SKILL_SPLIT] = "SKILL_SPLIT";
+    string2enum["SKILL_FALL_SPLIT"] = SKILL_FALL_SPLIT;
+    enum2String[SKILL_FALL_SPLIT] = "SKILL_FALL_SPLIT";
 
 }
 template class EnumParser<SkillType>;
@@ -170,5 +170,11 @@ bool isKickIKSkill(SkillType skill)
 {
     string skillStr = EnumParser<SkillType>::getStringFromEnum( skill );
     return skillStr.find("KICK_IK") != string::npos;
+}
+
+bool isFallSkill(SkillType skill)
+{
+    string skillStr = EnumParser<SkillType>::getStringFromEnum( skill );
+    return skillStr.find("FALL") != string::npos;
 }
 

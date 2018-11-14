@@ -599,6 +599,10 @@ void Skill::reset() {
     currentKeyFrameSetTime = -1;
 }
 
+void Skill::setFallSkillTime(double time){
+    keyFrames.back()->setWaitTime(time);
+}
+
 bool Skill::done(BodyModel *bodyModel, const WorldModel *worldModel) {
 
     return ((currentKeyFrame == (int)(keyFrames.size() - 1)) && keyFrames[currentKeyFrame]->done(bodyModel, worldModel, currentKeyFrameSetTime));

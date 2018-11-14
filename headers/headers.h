@@ -273,7 +273,7 @@ enum SkillType {
     SKILL_KICK_IK_0_LEFT_LEG,
     SKILL_KICK_IK_0_RIGHT_LEG,
 
-    SKILL_SPLIT,
+    SKILL_FALL_SPLIT,
 
     SKILL_NONE
 
@@ -313,6 +313,7 @@ std::ostream& operator<<(std::ostream& out, const std::vector<T>& t) {
 
 bool isKickSkill(SkillType skill);
 bool isKickIKSkill(SkillType skill);
+bool isFallSkill(SkillType skill);
 
 
 #endif // HEADERS_H

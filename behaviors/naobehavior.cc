@@ -329,8 +329,19 @@ void NaoBehavior::act() {
         velocity.paramSet = WalkRequestBlock::PARAMS_DEFAULT;
     }
     else {
-        if(skills[skill]->done( bodyModel, worldModel) ||
-                bodyModel->useOmniWalk()) {
+        bool skillDoneFlag = skills[skill]->done( bodyModel, worldModel);
+        if(skillDoneFlag || bodyModel->useOmniWalk()) {
+            //add for fall skill
+            if(isFallSkill(skill) && skillDoneFlag ){
+                cout << "fall done check now\n";
+                checkingFall(true);//ignore skill == fall skill
+                cout << worldModel->isFallen() << " shuai le ?\n\n";
+                resetSkills();
+                //  skill = SKILL_STAND;
+                // core->move(0,0,0);
+                // velocity.paramSet = WalkRequestBlock::PARAMS_DEFAULT;
+                
+            }else{
             skills[skill]->reset();
             resetScales();
             SkillType currentSkill = selectSkill();
@@ -366,6 +377,7 @@ void NaoBehavior::act() {
 
 
             }
+        }
         }
     }
     //  cout << "Executing: " << EnumParser<SkillType>::getStringFromEnum(skill) << endl;

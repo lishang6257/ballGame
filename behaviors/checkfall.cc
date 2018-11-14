@@ -1,8 +1,10 @@
 #include "naobehavior.h"
 
 /*
-  This function returns true if we are taking some action
-  to avert or recover from fall; false otherwise.
+  This function 
+  returns true if we are taking some action
+  to avert or recover from fall; 
+  false otherwise.
 
   If fallState is 0, we are still safe, and a check is performed
   to detect fall along four directions: up, down, right, and left.
@@ -15,7 +17,13 @@
   that is ultimately reset to 0.
  */
 
-bool NaoBehavior::checkingFall() {
+bool NaoBehavior::checkingFall(bool ignoreFallSkill) {//default : false
+
+    //add for fall skill;
+    //this program will assume the split situtation as standing,yun resolve it by using a simple way
+    if(!ignoreFallSkill && isFallSkill(skill) ) return false;
+
+    // if(checkFallSkill && isFallSkill(skill)) return true;
 
     VecPosition accel = bodyModel->getAccelRates();
     if(fallState == 0 || beamablePlayMode()) {
@@ -40,7 +48,8 @@ bool NaoBehavior::checkingFall() {
         }
         */
 
-        if(fallenUp || fallenDown || fallenLeft || fallenRight) {
+        if(fallenUp || fallenDown || fallenLeft || fallenRight || isFallSkill(skill) ) {
+            cout << "checkfull.cc : true \n"; 
             fallState = 1;
             currentFallStateStartTime = -1.0;
             worldModel->setFallen(true);
@@ -294,7 +303,7 @@ bool NaoBehavior::checkingFall() {
                 fallenDown = false;
                 lastGetupRecoveryTime = worldModel->getTime();
                 // recursive ...
-                return checkingFall();
+                return checkingFall(ignoreFallSkill);
 
             }
         }
@@ -614,7 +623,7 @@ bool NaoBehavior::checkingFall() {
                 fallenUp = false;
                 lastGetupRecoveryTime = worldModel->getTime();
                 // recursive ...
-                return checkingFall();
+                return checkingFall(ignoreFallSkill);
             }
         }
     }

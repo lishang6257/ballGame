@@ -811,60 +811,63 @@ struct SkillParser : public grammar<SkillParser>
 //  Main program
 //
 ////////////////////////////////////////////////////////////////////////////
-//int
-//main()
-//{
+// int
+// main()
+// {
 //    cout << "/////////////////////////////////////////////////////////\n\n";
 //    cout << "\t\tSkills parser...\n\n";
 //    cout << "/////////////////////////////////////////////////////////\n\n";
 //    cout << "Type an filename to parse...or [q or Q] to quit\n\n";
-//
+
 //    // TODO: replace sent parameter to skills structure
-//    SkillParser parser(new int[3]);    //  Our parser
-//    string str;
-//    while (getline(cin, str))
-//    {
-//        if (str.empty() || str[0] == 'q' || str[0] == 'Q')
-//            break;
-//
-//        string filename = str;
-//
-//        iterator_t first(filename.c_str());
-//        if (!first)
-//        {
-//          std::cout << "Unable to open file!\n";
-//          return -1;
-//        } else {
-//          std::cout << "Opened file" << endl;
-//        }
-//        iterator_t last = first.make_end();
-//
-//        parse_info<iterator_t> info = parse(first, last,
-//                                            parser,
-//                                            ( space_p | comment_p("#") )
-//                                            );
-//        // TODO: cannot get full here
-//        if (info.hit)
-//        {
-//            cout << "-------------------------\n";
-//            cout << "Parsing succeeded\n";
-//            cout << "-------------------------\n";
-//            cout << "stop "  << info.stop << endl;
-//            cout << "full " << info.full << endl;
-//            cout << "length " << info.length << endl;
-//        }
-//        else
-//        {
-//            cout << "-------------------------\n";
-//            cout << "Parsing failed\n";
-////            cout << "stopped at: \": " << info.stop << "\"\n";
-//            cout << "-------------------------\n";
-//        }
-//    }
-//
-//    cout << "Bye... :-) \n\n";
+//    NaoBehavior ANao;
+//    ANao.readSkillsFromFile( "./skills/split.skl" );
+
+// //    SkillParser parser(new int[3]);    //  Our parser
+// //    string str;
+// //    while (getline(cin, str))
+// //    {
+// //        if (str.empty() || str[0] == 'q' || str[0] == 'Q')
+// //            break;
+
+// //        string filename = str;
+
+// //        iterator_t first(filename.c_str());
+// //        if (!first)
+// //        {
+// //          std::cout << "Unable to open file!\n";
+// //          return -1;
+// //        } else {
+// //          std::cout << "Opened file" << endl;
+// //        }
+// //        iterator_t last = first.make_end();
+
+// //        parse_info<iterator_t> info = parse(first, last,
+// //                                            parser,
+// //                                            ( space_p | comment_p("#") )
+// //                                            );
+// //        // TODO: cannot get full here
+// //        if (info.hit)
+// //        {
+// //            cout << "-------------------------\n";
+// //            cout << "Parsing succeeded\n";
+// //            cout << "-------------------------\n";
+// //            cout << "stop "  << info.stop << endl;
+// //            cout << "full " << info.full << endl;
+// //            cout << "length " << info.length << endl;
+// //        }
+// //        else
+// //        {
+// //            cout << "-------------------------\n";
+// //            cout << "Parsing failed\n";
+// // //            cout << "stopped at: \": " << info.stop << "\"\n";
+// //            cout << "-------------------------\n";
+// //        }
+// //    }
+
+// //    cout << "Bye... :-) \n\n";
 //    return 0;
-//}
-//
-//
-//
+// }
+
+
+

@@ -282,6 +282,8 @@ public:
     void display();
 
     int getCurrentKeyFrame();
+
+    void setFallSkillTime(double time);
 };
 
 

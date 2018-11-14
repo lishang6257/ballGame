@@ -123,6 +123,11 @@ protected:
     bool fParsedVision;
     string composeAction();
 
+    bool setFallSkillTime(SkillType skill,double time){
+        if(!isFallSkill(skill)) return false;
+        skills.find(skill)->second->setFallSkillTime(time);
+        return true;
+    }
     virtual void resetSkills();
     void resetScales();
     void refresh();
@@ -138,7 +143,7 @@ protected:
     // ----------------------------------------------------
 
 
-    bool checkingFall();
+    bool checkingFall(bool ignoreFallSkill = false);
 
     /**
      * Trims the value to within [min, max].
