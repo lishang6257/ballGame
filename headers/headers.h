@@ -273,6 +273,8 @@ enum SkillType {
     SKILL_KICK_IK_0_LEFT_LEG,
     SKILL_KICK_IK_0_RIGHT_LEG,
 
+    SKILL_SPLIT,
+
     SKILL_NONE
 
 };

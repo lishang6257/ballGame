@@ -73,6 +73,9 @@ EnumParser<SkillType>::EnumParser()
     string2enum["SKILL_NONE"] = SKILL_NONE;
     enum2String[SKILL_NONE] = "SKILL_NONE";
 
+    string2enum["SKILL_SPLIT"] = SKILL_SPLIT;
+    enum2String[SKILL_SPLIT] = "SKILL_SPLIT";
+
 }
 template class EnumParser<SkillType>;
 template<>

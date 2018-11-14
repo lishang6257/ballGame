@@ -126,7 +126,7 @@ SkillType NaoBehavior::demoKickingCircle() {
 
         if (me.getDistanceTo(target) < .25 && abs(localCenterAngle) <= 10) {
             // Close enough to desired position and orientation so just stand
-            return SKILL_STAND;
+            return SKILL_SPLIT;
         } else if (me.getDistanceTo(target) < .5) {
             // Close to desired position so start turning to face center
             return goToTargetRelative(worldModel->g2l(target), localCenterAngle);
