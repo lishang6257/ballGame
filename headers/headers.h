@@ -276,7 +276,6 @@ enum SkillType {
     SKILL_FALL_SPLIT,
 
     SKILL_NONE
-
 };
 
 

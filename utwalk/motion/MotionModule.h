@@ -25,6 +25,9 @@ public:
     inline double getMaxYSpeed()   {
         return ut_walk_engine_.getMaxYSpeed();
     }
+    inline double getMaxSpeed()    {
+        return sqrt(getMaxSpeed()*getMaxSpeed() + getMaxYSpeed()*getMaxYSpeed());
+    }
     inline double getMaxRotSpeed() {
         return ut_walk_engine_.getMaxRotSpeed();
     }

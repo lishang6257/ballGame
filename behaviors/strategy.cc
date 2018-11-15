@@ -47,7 +47,7 @@ SkillType NaoBehavior::selectSkill() {
     // ### Demo Behaviors ###
 
     // Walk in different directions
-    //return goToTargetRelative(VecPosition(1,0,0), 0); // Forward
+    return goToTargetRelative(VecPosition(1,0,0), 0); // Forward
     //return goToTargetRelative(VecPosition(-1,0,0), 0); // Backward
     //return goToTargetRelative(VecPosition(0,1,0), 0); // Left
     //return goToTargetRelative(VecPosition(0,-1,0), 0); // Right
@@ -79,13 +79,20 @@ SkillType NaoBehavior::selectSkill() {
     //return kickBall(KICK_IK, VecPosition(HALF_FIELD_X, 0, 0)); // IK kick
 
     // Just stand in place
-    //return SKILL_STAND;
+    return SKILL_STAND;
 
     // Demo behavior where players form a rotating circle and kick the ball
     // back and forth
     // return demoKickingCircle();
-      setFallSkillTime(SKILL_FALL_SPLIT,3);
-      return SKILL_FALL_SPLIT;
+
+    // test for split
+    setFallSkillTime(SKILL_FALL_SPLIT,3);
+    //return SKILL_FALL_SPLIT;
+      // return SKILL_TEXT;
+
+
+
+
 }
 
 
@@ -145,6 +152,14 @@ SkillType NaoBehavior::demoKickingCircle() {
             return SKILL_FALL_SPLIT;
         } else if (me.getDistanceTo(target) < .5) {
             // Close to desired position so start turning to face center
+            
+            worldModel->getRVSender()->clearStaticDrawings();
+            VecPosition pos = worldModel->getMyPosition();
+            VecPosition dir = VecPosition(1,0,0);
+            dir = dir.rotateAboutZ(-worldModel->getMyAngDeg());
+            // worldModel->getRVSender()->drawPoint("dir " + worldModel->getUNum() ,pos.getX(), pos.getY(), 10);
+            worldModel->getRVSender()->drawLine("dir " + worldModel->getUNum() ,pos.getX(), pos.getY(), target.getX(), target.getY());
+
             return goToTargetRelative(worldModel->g2l(target), localCenterAngle);
         } else {
             // Move toward target location

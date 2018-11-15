@@ -541,8 +541,7 @@ bool NaoBehavior::isLeftSkill( SkillType skill ) {
 }
 
 
-double NaoBehavior::
-trim(const double& value, const double& min, const double&max)
+double NaoBehavior::trim(const double& value, const double& min, const double&max)
 {
     double ret;
     if (value > max)
@@ -881,10 +880,25 @@ SkillType NaoBehavior::goToTargetRelative(const VecPosition& targetLoc, const do
     walkRotation = targetRot;
     walkSpeed = speed;
 
+    
     walkSpeed = trim(walkSpeed, 0.1, 1);
 
-    if (targetLoc.getMagnitude() == 0)
-        walkSpeed = 0;
+    double dis = targetLoc.getMagnitude(); 
+    double startDecelerateDistance = 1;
+    if(dis < startDecelerateDistance){
+        //为了让速度的变化比较均匀，假定v~t,则x~v^2 ,here assume use 1 sceond to decelerate
+        // double Vm = core->motion_->getMaxSpeed();
+        // double a = Vm*Vm/(2*startDecelerateDistance);
+        // walkSpeed = sqrt(Vm*Vm - 2*a*(startDecelerateDistance - dis));
+        // walkSpeed /= Vm;//标准化
+
+        double a = 1/(2*startDecelerateDistance);
+        walkSpeed =  sqrt(1 - 2*a*(startDecelerateDistance - dis));
+
+        cout << "walk engine : " << Vm << " " << walkSpeed << "\n";
+
+    }
+    
 
     return getWalk(paramSet, walkDirection, walkRotation, walkSpeed, fAllowOver180Turn);
 }

@@ -36,6 +36,9 @@ public:
     inline double getMaxYSpeed()   {
         return params_.max_step_size_.translation.y;
     }
+    inline double getMaxSpeed(){
+        return sqrt(getMaxSpeed()*getMaxSpeed() + getMaxYSpeed()*getMaxYSpeed());
+    }
     inline double getMaxRotSpeed() {
         return params_.max_step_size_.rotation;
     }

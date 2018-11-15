@@ -49,7 +49,6 @@ bool NaoBehavior::checkingFall(bool ignoreFallSkill) {//default : false
         */
 
         if(fallenUp || fallenDown || fallenLeft || fallenRight || isFallSkill(skill) ) {
-            cout << "checkfull.cc : true \n"; 
             fallState = 1;
             currentFallStateStartTime = -1.0;
             worldModel->setFallen(true);
