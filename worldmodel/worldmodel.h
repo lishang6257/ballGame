@@ -63,6 +63,9 @@ private:
     SIM::Point2D lastOdometryPos;
     double lastOdometryAngDeg;
 
+    // add for afu walk - speed strategy
+    double lastSpeed;
+
     bool fLocalized;
     bool fFallen;
 
@@ -447,6 +450,7 @@ public:
         return fFallen;
     }
     inline void setFallen(bool fFallen) {
+        if(fFallen) lastSpeed = 0;//add for speed strategy
         this->fFallen = fFallen;
     }
 
@@ -460,6 +464,14 @@ public:
 
     inline bool canTrustVision() {
         return fLocalized && getMyPosition().getDistanceTo(getMyLastPosition()) < .2;
+    }
+
+    inline void setLastSpeed(double speed){
+        lastSpeed = speed;
+    }
+
+    inline double getLastSpeed(){
+        return lastSpeed;
     }
 
     bool getFallenTeammate(int index) const {
@@ -495,6 +507,7 @@ public:
     void setTeammateLastHeardTime(int index, double time) {
         teammateLastHeardTime[index] = time;
     }
+
 
     void display();
 };

@@ -39,15 +39,27 @@ SkillType NaoBehavior::selectSkill() {
     // Agents draw the position of where they think the ball is
     // Also see example in naobahevior.cc for drawing agent position and
     // orientation.
-    /*
+    
     worldModel->getRVSender()->clear(); // erases drawings from previous cycle
-    worldModel->getRVSender()->drawPoint("ball", ball.getX(), ball.getY(), 10.0f, RVSender::MAGENTA);
-    */
+    // worldModel->getRVSender()->drawPoint("ball", ball.getX(), ball.getY(), 10.0f, RVSender::MAGENTA);
+    // worldModel->getRVSender()->drawPoint("dir " + worldModel->getUNum() ,pos.getX(), pos.getY(), 10);
+
+    VecPosition dir = VecPosition(1,0,0);
+    // cout << worldModel->getMyAngDeg() << "myangle \n";
+    dir = dir.rotateAboutZ(-worldModel->getMyAngDeg() + 90);
+
+    worldModel->getRVSender()->drawLine("My1"
+        ,me.getX(), me.getY(), (me+dir).getX(), (me+dir).getY(),RVSender::BLUE);
+    worldModel->getRVSender()->drawLine("X" 
+        ,me.getX(), me.getY(), (me+myXDirection).getX(), (me+myXDirection).getY(),RVSender::PINK);
+     worldModel->getRVSender()->drawLine("Y" 
+        ,me.getX(), me.getY(), (me+myYDirection).getX(), (me+myYDirection).getY(),RVSender::ORANGE);
+    
 
     // ### Demo Behaviors ###
 
     // Walk in different directions
-    return goToTargetRelative(VecPosition(1,0,0), 0); // Forward
+    // return goToTargetRelative(VecPosition(1,0,0), 0); // Forward
     //return goToTargetRelative(VecPosition(-1,0,0), 0); // Backward
     //return goToTargetRelative(VecPosition(0,1,0), 0); // Left
     //return goToTargetRelative(VecPosition(0,-1,0), 0); // Right
@@ -57,16 +69,20 @@ SkillType NaoBehavior::selectSkill() {
     //return goToTargetRelative(VecPosition(1,0,0), 15); // Circle
 
     // Walk to the ball
-    //return goToTarget(ball);
+    // return goToTarget(VecPosition(0,0, 0));
+
+    // goToTarget
 
     // Turn in place to face ball
-    /*double distance, angle;
-    getTargetDistanceAndAngle(ball, distance, angle);
-    if (abs(angle) > 10) {
-      return goToTargetRelative(VecPosition(), angle);
-    } else {
-      return SKILL_STAND;
-    }*/
+    // double distance, angle;
+    // getTargetDistanceAndAngle(ball, distance, angle);
+    // if (abs(angle) > 10) {
+    //   return goToTargetRelative(VecPosition(), angle);
+    // } else {
+    //   return SKILL_STAND;
+    // }
+
+    return goToTarget(ball);
 
     // Walk to ball while always facing forward
     //return goToTargetRelative(worldModel->g2l(ball), -worldModel->getMyAngDeg());
@@ -75,18 +91,18 @@ SkillType NaoBehavior::selectSkill() {
     //return kickBall(KICK_DRIBBLE, VecPosition(HALF_FIELD_X, 0, 0));
 
     // Kick ball toward opponent's goal
-    //return kickBall(KICK_FORWARD, VecPosition(HALF_FIELD_X, 0, 0)); // Basic kick
+    // return kickBall(KICK_FORWARD, VecPosition(HALF_FIELD_X, 0, 0)); // Basic kick
     //return kickBall(KICK_IK, VecPosition(HALF_FIELD_X, 0, 0)); // IK kick
 
     // Just stand in place
-    return SKILL_STAND;
+    // return SKILL_STAND;
 
     // Demo behavior where players form a rotating circle and kick the ball
     // back and forth
     // return demoKickingCircle();
 
     // test for split
-    setFallSkillTime(SKILL_FALL_SPLIT,3);
+    // setFallSkillTime(SKILL_FALL_SPLIT,3);
     //return SKILL_FALL_SPLIT;
       // return SKILL_TEXT;
 
@@ -157,8 +173,7 @@ SkillType NaoBehavior::demoKickingCircle() {
             VecPosition pos = worldModel->getMyPosition();
             VecPosition dir = VecPosition(1,0,0);
             dir = dir.rotateAboutZ(-worldModel->getMyAngDeg());
-            // worldModel->getRVSender()->drawPoint("dir " + worldModel->getUNum() ,pos.getX(), pos.getY(), 10);
-            worldModel->getRVSender()->drawLine("dir " + worldModel->getUNum() ,pos.getX(), pos.getY(), target.getX(), target.getY());
+            
 
             return goToTargetRelative(worldModel->g2l(target), localCenterAngle);
         } else {

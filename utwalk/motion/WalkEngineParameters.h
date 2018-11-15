@@ -15,6 +15,11 @@ struct WalkEngineParameters {
     // angles are all in radians
     // times are all in seconds
 
+    //here define for afu walk
+    
+    //start distance to use speed-down strategy
+    float start_decelerate_distance_;// unit : m
+
     // max speeds
     Pose2D max_step_size_;
     // dimensions of walk

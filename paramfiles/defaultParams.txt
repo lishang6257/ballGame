@@ -290,3 +290,7 @@ kick_gen_approach_maxDecelY		0.5
 // Parameters for dribbling
 drib_coll_thresh				0.34
 drib_target					0.18
+
+//add for afu walk
+afuwalk_start_decelerate_distance	1 
+afuwalk_start_aecelerate_interval	0.3

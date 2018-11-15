@@ -230,3 +230,4 @@ kick_gen_approach_maxDecelY	1.9052608061330103
 // Parameters for dribbling
 drib_coll_thresh				0.33582030312352373
 drib_target					0.17785682250297227
+afuwalk_start_aecelerate_interval	0.3

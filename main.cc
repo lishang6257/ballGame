@@ -123,6 +123,7 @@ void LoadParams(const string& inputsFile) {
         if(value.empty()) {
             continue;
         }
+        // if(key == "afuwalk_start_decelerate_distance") cout << value <<"get here test \n";
         namedParams[key] = value;
     }
 

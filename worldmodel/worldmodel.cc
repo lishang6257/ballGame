@@ -53,6 +53,8 @@ WorldModel::WorldModel() {
 
     lastLineSightingTime = -100;
 
+    lastSpeed = 0;//test
+
     localToGlobal = HCTMatrix();
     globalToLocal = HCTMatrix();
 

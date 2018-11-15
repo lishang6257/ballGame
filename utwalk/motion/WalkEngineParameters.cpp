@@ -17,6 +17,10 @@ getParam(const map<string, string>& namedParams, const string name)
 }
 
 WalkEngineParameters::WalkEngineParameters(const string& prefix):
+    //add for afu walk
+    //start distance using speed-down strategy
+    //start_decelerate_distance_(getParam(namedParams, prefix + "afuwalk_start_decelerate_distance")),
+
     // max speeds
 //  max_step_size_(DEG_T_RAD*70,50,40),
     max_step_size_(getParam(namedParams, prefix + "utwalk_max_step_size_angle"),

@@ -84,6 +84,9 @@ protected:
     void preProcessJoints();
     void postProcessJoints();
 
+    // //for afu walk
+    // double curSpeed;
+
     double hoverTime;
     bool mInit;
     bool initBeamed;
@@ -226,10 +229,14 @@ protected:
 
     bool isRightSkill( SkillType skill );
     bool isLeftSkill( SkillType skill );
+    bool isFallSkill( SkillType skill );
 
     double getParameter(const std::string& name);
     double getStdNameParameter(const SkillType kick_skill, const std::string& parameter);
     void getSkillsForKickType(int kickType, SkillType skillsForType[]);
+
+    //add for afu 
+    void getAgentForward(std::vector<VecPosition> &pos,std::vector<int> &num,std::vector<double> angle,double R);
 
     SkillType demoKickingCircle();
 

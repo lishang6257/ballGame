@@ -351,6 +351,12 @@ void NaoBehavior::act() {
                 velocity.paramSet = WalkRequestBlock::PARAMS_DEFAULT;
             }
 
+            if( isFallSkill(currentSkill) || currentSkill == SKILL_STAND ) {
+                // cout << currentSkill << "\n";
+                worldModel->setLastSpeed(0);
+                cout << "error set\n";
+            }
+
             bodyModel->setUseOmniWalk(true);
             switch(currentSkill) {
             case SKILL_WALK_OMNI:
@@ -538,6 +544,11 @@ bool NaoBehavior::isRightSkill( SkillType skill ) {
 bool NaoBehavior::isLeftSkill( SkillType skill ) {
     string skillStr = EnumParser<SkillType>::getStringFromEnum( skill );
     return skillStr.find("LEFT") != string::npos;
+}
+
+bool NaoBehavior::isFallSkill( SkillType skill ) {
+    string skillStr = EnumParser<SkillType>::getStringFromEnum( skill );
+    return skillStr.find("FALL") != string::npos;
 }
 
 
@@ -868,10 +879,12 @@ SkillType NaoBehavior::getWalk(WalkRequestBlock::ParamSet paramSet, const double
         return SKILL_STAND;
     }
 
+    worldModel->setLastSpeed(relSpeed);
     return SKILL_WALK_OMNI;
 }
 
-// Currently untuned. For example, there's no slow down...
+// tuned by liahsng6257：add speed strategy
+// tuned by lisahng6257: avoid the enamy
 SkillType NaoBehavior::goToTargetRelative(const VecPosition& targetLoc, const double& targetRot, const double speed, bool fAllowOver180Turn, WalkRequestBlock::ParamSet paramSet)
 {
     double walkDirection, walkRotation, walkSpeed;
@@ -884,42 +897,142 @@ SkillType NaoBehavior::goToTargetRelative(const VecPosition& targetLoc, const do
     walkSpeed = trim(walkSpeed, 0.1, 1);
 
     double dis = targetLoc.getMagnitude(); 
-    double startDecelerateDistance = 1;
+    
+    //速度模型
+    //加速模型
+    // namedParams.find("afuwalk_start_decelerate_distance")
+    double startAecelerateInterval = 0.3,lastSpeed = worldModel->getLastSpeed();
+    if( walkSpeed - lastSpeed > startAecelerateInterval)  walkSpeed = lastSpeed + startAecelerateInterval;
+
+    //减速模型
+    double startDecelerateDistance = atof(namedParams.find("afuwalk_start_decelerate_distance")->second.c_str());
     if(dis < startDecelerateDistance){
         //为了让速度的变化比较均匀，假定v~t,则x~v^2 ,here assume use 1 sceond to decelerate
         // double Vm = core->motion_->getMaxSpeed();
         // double a = Vm*Vm/(2*startDecelerateDistance);
         // walkSpeed = sqrt(Vm*Vm - 2*a*(startDecelerateDistance - dis));
         // walkSpeed /= Vm;//标准化
-
         double a = 1/(2*startDecelerateDistance);
         walkSpeed =  sqrt(1 - 2*a*(startDecelerateDistance - dis));
-
-        cout << "walk engine : " << Vm << " " << walkSpeed << "\n";
-
     }
+
+    //局部避障算法
+    double nearR = 1;
+    std::vector<VecPosition> pos;
+    std::vector<int> num;
+    std::vector<double> angle;
+    getAgentForward(pos,num,angle,1);
     
 
     return getWalk(paramSet, walkDirection, walkRotation, walkSpeed, fAllowOver180Turn);
 }
 
+// lishang6257:获取当前球员在可移动的两个最大角度所构成的长度为R的扇形内的所有球员，并按照与向左旋转的夹角大小排序
+void NaoBehavior::getAgentForward(std::vector<VecPosition> &pos,std::vector<int> &num,std::vector<double> angle,double R)
+{
+    VecPosition myPos = worldModel->getMyPosition();
+    VecPosition flagPosL = VecPosition(R,0,0);
+    flagPosL = flagPosL.rotateAboutZ(- worldModel->getMyAngDeg() - getLimitingAngleForward())*1.1 + me;
+
+    VecPosition flagPosR = VecPosition(R,0,0);
+    flagPosR = flagPosR.rotateAboutZ(- worldModel->getMyAngDeg() + getLimitingAngleForward())*1.1 + me;
+
+    double angleLR = me.getAngleBetweenPoints(flagPosR,flagPosL);
+
+    cout << flagPosL << "L:R" << flagPosR << "\n";
+    worldModel->getRVSender()->clear(); // erases drawings from previous cycle
+    // worldModel->getRVSender()->drawPoint("ball", ball.getX(), ball.getY(), 10.0f, RVSender::MAGENTA);
+    // worldModel->getRVSender()->drawPoint("dir " + worldModel->getUNum() ,pos.getX(), pos.getY(), 10);
+    if(worldModel->getUNum() == 1){
+    worldModel->getRVSender()->drawLine("FlagL"
+        ,me.getX(), me.getY(), (flagPosL).getX(), (flagPosL).getY(),RVSender::RED);
+    worldModel->getRVSender()->drawLine("FlagR"
+        ,me.getX(), me.getY(), (flagPosR).getX(), (flagPosR).getY(),RVSender::VIOLET);
+    }
+
+    //队友
+    for(int i = WO_TEAMMATE1; i < WO_TEAMMATE1+NUM_AGENTS; ++i) {
+        VecPosition tmp;
+        int playerNum = i - WO_TEAMMATE1 + 1;
+        if (worldModel->getUNum() == playerNum) {
+            // This is us
+            continue;
+        } else {
+            WorldObject* teammate = worldModel->getWorldObject( i );
+            if (teammate->validPosition) {
+                //判断是否在扇形区域，并从小到大插入
+                tmp = teammate->pos;
+                double angleL = me.getAngleBetweenPoints(tmp,flagPosL),
+                       angleR = me.getAngleBetweenPoints(tmp,flagPosR);
+                if(tmp.getDistanceTo(myPos) > R || (angleL + angleR) != angleLR ) continue; //不在扇形内
+
+                worldModel->getRVSender()->drawPoint("block", tmp.getX(), tmp.getY(), 10.0f, RVSender::MAGENTA);
+
+                //插入[二分思考中]
+                for(unsigned int j = 0;j< pos.size();j ++){//以left为标志杆
+                    if(angleL < angle[j]){
+                        pos.insert(pos.begin() + j,tmp);
+                        num.insert(num.begin() + j,i);
+                        angle.insert(angle.begin() + i,angleL);
+                    }
+                }
+            } else {
+                continue;
+            }
+        }
+    }
+    //敌人
+    for(int i = WO_OPPONENT1; i < WO_OPPONENT1+NUM_AGENTS; ++i) {
+        VecPosition tmp;
+
+        WorldObject* teammate = worldModel->getWorldObject( i );
+        if (teammate->validPosition) {
+            //判断是否在扇形区域，并从小到大插入
+            tmp = teammate->pos;
+            double angleL = me.getAngleBetweenPoints(tmp,flagPosL),
+                    angleR = me.getAngleBetweenPoints(tmp,flagPosR);
+            if(tmp.getDistanceTo(myPos) > R || (angleL + angleR) != angleLR ) continue; //不在扇形内
+            //插入[二分思考中]
+            worldModel->getRVSender()->drawPoint("block", tmp.getX(), tmp.getY(), 10.0f, RVSender::MAGENTA);
+            for(unsigned int j = 0;j < pos.size();j ++){//以left为标志杆
+                if(angleL < angle[j]){
+                    pos.insert(pos.begin() + j,tmp);
+                    num.insert(num.begin() + j,i);
+                    angle.insert(angle.begin() + i,angleL);
+                }
+            }
+        } else {
+            continue;
+        }
+    }
+
+}
+
 
 //Assumes target = z-0. Maybe needs further tuning
+/*tuning point(lishang6257):(use ut comment statements to solve them)
+1.find it is difficult to turn when close to the target
+2.when far away from the target it angle change sequence is not smooth
+*/
+
 SkillType NaoBehavior::goToTarget(const VecPosition &target) {
     double distance, angle;
     getTargetDistanceAndAngle(target, distance, angle);
 
     const double distanceThreshold = 1;
     const double angleThreshold = getLimitingAngleForward() * .9;
+
+    // cout << "angle : " << getLimitingAngleForward() << "\n";
     VecPosition relativeTarget = VecPosition(distance, angle, 0, POLAR);
 
     // Turn to the angle we want to walk in first, since we want to walk with
     // maximum forwards speeds if possible.
-    /*if (abs(angle) > angleThreshold)
-    {
-    return goToTargetRelative(VecPosition(), angle);
-    }*/
 
+    //方案1 ： 先面向目標，讓後徑直行走|| 效果还行
+    if (abs(angle) > angleThreshold)
+    {
+        return goToTargetRelative(VecPosition(), angle);
+    }
     // [patmac] Speed/quickness adjustment
     // For now just go full speed in the direction of the target and also turn
     // toward our heading.
