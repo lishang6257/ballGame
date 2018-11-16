@@ -65,7 +65,7 @@ SkillType NaoBehavior::selectSkill() {
     //return goToTargetRelative(VecPosition(0,-1,0), 0); // Right
     //return goToTargetRelative(VecPosition(1,1,0), 0); // Diagonal
     //return goToTargetRelative(VecPosition(0,1,0), 90); // Turn counter-clockwise
-    //return goToTargetRelative(VecPdosition(0,-1,0), -90); // Turn clockwise
+    //return goToTargetRelative(VecPosition(0,-1,0), -90); // Turn clockwise
     //return goToTargetRelative(VecPosition(1,0,0), 15); // Circle
 
     // Walk to the ball
@@ -81,8 +81,13 @@ SkillType NaoBehavior::selectSkill() {
     // } else {
     //   return SKILL_STAND;
     // }
+    if(worldModel->getUNum() == 1) 
+    return goToTargetRelative(VecPosition(),0);
 
+    if(worldModel->getUNum() == 2) 
     return goToTarget(ball);
+    
+    return SKILL_STAND;
 
     // Walk to ball while always facing forward
     //return goToTargetRelative(worldModel->g2l(ball), -worldModel->getMyAngDeg());

@@ -333,9 +333,9 @@ void NaoBehavior::act() {
         if(skillDoneFlag || bodyModel->useOmniWalk()) {
             //add for fall skill
             if(isFallSkill(skill) && skillDoneFlag ){
-                cout << "fall done check now\n";
+                // cout << "fall done check now\n";
                 checkingFall(true);//ignore skill == fall skill
-                cout << worldModel->isFallen() << " shuai le ?\n\n";
+                // cout << worldModel->isFallen() << " shuai le ?\n\n";
                 resetSkills();
                 //  skill = SKILL_STAND;
                 // core->move(0,0,0);
@@ -354,7 +354,7 @@ void NaoBehavior::act() {
             if( isFallSkill(currentSkill) || currentSkill == SKILL_STAND ) {
                 // cout << currentSkill << "\n";
                 worldModel->setLastSpeed(0);
-                cout << "error set\n";
+                // cout << "error set\n";
             }
 
             bodyModel->setUseOmniWalk(true);
@@ -884,9 +884,11 @@ SkillType NaoBehavior::getWalk(WalkRequestBlock::ParamSet paramSet, const double
 }
 
 // tuned by liahsng6257：add speed strategy
-// tuned by lisahng6257: avoid the enamy
+// tuned by lisahng6257: avoid obstacle
+
 SkillType NaoBehavior::goToTargetRelative(const VecPosition& targetLoc, const double& targetRot, const double speed, bool fAllowOver180Turn, WalkRequestBlock::ParamSet paramSet)
 {
+    bool whetherUseNewAvoidObstacleStrategy;
     double walkDirection, walkRotation, walkSpeed;
 
     walkDirection = targetLoc.getTheta();
@@ -898,14 +900,17 @@ SkillType NaoBehavior::goToTargetRelative(const VecPosition& targetLoc, const do
 
     double dis = targetLoc.getMagnitude(); 
     
-    //速度模型
+    //需要优化的参数
+    double nearR = 1.5;
+    double startDecelerateDistance = atof(namedParams.find("afuwalk_start_decelerate_distance")->second.c_str());
+    double startAecelerateInterval = 0.3,lastSpeed = worldModel->getLastSpeed();
+    
+    /*******************速度模型***************************/
     //加速模型
     // namedParams.find("afuwalk_start_decelerate_distance")
-    double startAecelerateInterval = 0.3,lastSpeed = worldModel->getLastSpeed();
     if( walkSpeed - lastSpeed > startAecelerateInterval)  walkSpeed = lastSpeed + startAecelerateInterval;
 
     //减速模型
-    double startDecelerateDistance = atof(namedParams.find("afuwalk_start_decelerate_distance")->second.c_str());
     if(dis < startDecelerateDistance){
         //为了让速度的变化比较均匀，假定v~t,则x~v^2 ,here assume use 1 sceond to decelerate
         // double Vm = core->motion_->getMaxSpeed();
@@ -916,19 +921,35 @@ SkillType NaoBehavior::goToTargetRelative(const VecPosition& targetLoc, const do
         walkSpeed =  sqrt(1 - 2*a*(startDecelerateDistance - dis));
     }
 
+    if(worldModel->getUNum() == 1){
     //局部避障算法
-    double nearR = 1;
     std::vector<VecPosition> pos;
     std::vector<int> num;
     std::vector<double> angle;
-    getAgentForward(pos,num,angle,1);
+    getAgentForward(pos,num,angle,nearR);
+    if(pos.size() > 1){//有其他人阻拦
+        //找到间隔最大的位置，判定是否可以通过
+        double max = angle[0],maxId = 0;
+        for(unsigned int i = 1;i < pos.size();i ++){
+            if(angle[i] - angle[i-1] > max){
+                max = angle[i] - angle[i-1];
+                maxId = i;
+            }
+            if(num[i] == -1) break;
+        }
+        cout << maxId << " max " << max << "\n";
+        // cout << "gameTime : " <<  worldModel->getGameTime() << "length : " <<  pos.size() << "\n";
+        // for(unsigned int i = 0;i < angle.size();i ++ ) cout << angle[i] << " ";
+        // cout << " : angle end\n";
+    }
+    }
     
 
     return getWalk(paramSet, walkDirection, walkRotation, walkSpeed, fAllowOver180Turn);
 }
 
 // lishang6257:获取当前球员在可移动的两个最大角度所构成的长度为R的扇形内的所有球员，并按照与向左旋转的夹角大小排序
-void NaoBehavior::getAgentForward(std::vector<VecPosition> &pos,std::vector<int> &num,std::vector<double> angle,double R)
+void NaoBehavior::getAgentForward(std::vector<VecPosition> &pos,std::vector<int> &num,std::vector<double> &angle,double R)
 {
     VecPosition myPos = worldModel->getMyPosition();
     VecPosition flagPosL = VecPosition(R,0,0);
@@ -938,43 +959,53 @@ void NaoBehavior::getAgentForward(std::vector<VecPosition> &pos,std::vector<int>
     flagPosR = flagPosR.rotateAboutZ(- worldModel->getMyAngDeg() + getLimitingAngleForward())*1.1 + me;
 
     double angleLR = me.getAngleBetweenPoints(flagPosR,flagPosL);
+    double angleThreshold = 5;//
 
-    cout << flagPosL << "L:R" << flagPosR << "\n";
-    worldModel->getRVSender()->clear(); // erases drawings from previous cycle
-    // worldModel->getRVSender()->drawPoint("ball", ball.getX(), ball.getY(), 10.0f, RVSender::MAGENTA);
-    // worldModel->getRVSender()->drawPoint("dir " + worldModel->getUNum() ,pos.getX(), pos.getY(), 10);
-    if(worldModel->getUNum() == 1){
+    // worldModel->getRVSender()->clear(); // erases drawings from previous cycle
     worldModel->getRVSender()->drawLine("FlagL"
         ,me.getX(), me.getY(), (flagPosL).getX(), (flagPosL).getY(),RVSender::RED);
     worldModel->getRVSender()->drawLine("FlagR"
         ,me.getX(), me.getY(), (flagPosR).getX(), (flagPosR).getY(),RVSender::VIOLET);
-    }
+
+
 
     //队友
     for(int i = WO_TEAMMATE1; i < WO_TEAMMATE1+NUM_AGENTS; ++i) {
         VecPosition tmp;
-        int playerNum = i - WO_TEAMMATE1 + 1;
-        if (worldModel->getUNum() == playerNum) {
-            // This is us
+        if (worldModel->getUNum() == (i - WO_TEAMMATE1 + 1) ) {
             continue;
         } else {
             WorldObject* teammate = worldModel->getWorldObject( i );
-            if (teammate->validPosition) {
+            if ( teammate->validPosition) {
                 //判断是否在扇形区域，并从小到大插入
                 tmp = teammate->pos;
-                double angleL = me.getAngleBetweenPoints(tmp,flagPosL),
-                       angleR = me.getAngleBetweenPoints(tmp,flagPosR);
-                if(tmp.getDistanceTo(myPos) > R || (angleL + angleR) != angleLR ) continue; //不在扇形内
+                double angleL = myPos.getAngleBetweenPoints(tmp,flagPosL),
+                       angleR = myPos.getAngleBetweenPoints(tmp,flagPosR);
 
-                worldModel->getRVSender()->drawPoint("block", tmp.getX(), tmp.getY(), 10.0f, RVSender::MAGENTA);
+                // worldModel->getRVSender()->clear();
+                worldModel->getRVSender()->drawPoint("searchA", tmp.getX(), tmp.getY(), 30.0f, RVSender::RED);
+                if(tmp.getDistanceTo(myPos) > R || abs(angleL + angleR - angleLR) > angleThreshold) continue; //不在扇形内
+                
+                // cout << "agnent " << i << " " << angleL << "L:R" << angleR << ":LR : " << angleLR << ":" << angleL+angleR << "\n";
+                // if(abs(angleL + angleR - angleLR) > angleThreshold) continue;
 
-                //插入[二分思考中]
-                for(unsigned int j = 0;j< pos.size();j ++){//以left为标志杆
+ 
+                worldModel->getRVSender()->drawPoint("blockA", tmp.getX(), tmp.getY(), 30.0f, RVSender::BLUE);
+                // cout << "blockA " << i << "\n";
+                //插入[二分思考中]考虑到组到人数可能不多，无需二分
+                unsigned int j;
+                for(j = 0;j< pos.size();j ++){//以left为标志杆
                     if(angleL < angle[j]){
                         pos.insert(pos.begin() + j,tmp);
                         num.insert(num.begin() + j,i);
-                        angle.insert(angle.begin() + i,angleL);
+                        angle.insert(angle.begin() + j,angleL);
+                        break;
                     }
+                }
+                if(j == pos.size()){
+                    pos.push_back(tmp);
+                    num.push_back(i);
+                    angle.push_back(angleL);
                 }
             } else {
                 continue;
@@ -989,23 +1020,37 @@ void NaoBehavior::getAgentForward(std::vector<VecPosition> &pos,std::vector<int>
         if (teammate->validPosition) {
             //判断是否在扇形区域，并从小到大插入
             tmp = teammate->pos;
-            double angleL = me.getAngleBetweenPoints(tmp,flagPosL),
-                    angleR = me.getAngleBetweenPoints(tmp,flagPosR);
-            if(tmp.getDistanceTo(myPos) > R || (angleL + angleR) != angleLR ) continue; //不在扇形内
+            double angleL = myPos.getAngleBetweenPoints(tmp,flagPosL),
+                    angleR = myPos.getAngleBetweenPoints(tmp,flagPosR);
+
+            // worldModel->getRVSender()->clear();
+            worldModel->getRVSender()->drawPoint("searchB", tmp.getX(), tmp.getY(), 30.0f, RVSender::RED);        
+            if(tmp.getDistanceTo(myPos) > R || abs(angleL + angleR - angleLR) > angleThreshold ) continue; //不在扇形内
             //插入[二分思考中]
-            worldModel->getRVSender()->drawPoint("block", tmp.getX(), tmp.getY(), 10.0f, RVSender::MAGENTA);
-            for(unsigned int j = 0;j < pos.size();j ++){//以left为标志杆
+            worldModel->getRVSender()->drawPoint("blockB", tmp.getX(), tmp.getY(), 30.0f, RVSender::BLUE);
+            // cout << "blockB " << i << "\n";
+            unsigned int j;
+            for(j = 0;j < pos.size();j ++){//以left为标志杆
                 if(angleL < angle[j]){
                     pos.insert(pos.begin() + j,tmp);
                     num.insert(num.begin() + j,i);
-                    angle.insert(angle.begin() + i,angleL);
+                    angle.insert(angle.begin() + j,angleL);
+                    break;
                 }
+            }
+            if(j == pos.size()){
+                    pos.push_back(tmp);
+                    num.push_back(i);
+                    angle.push_back(angleL);
             }
         } else {
             continue;
         }
     }
 
+    pos.push_back(flagPosR);
+    num.push_back(-1);
+    angle.push_back(angleLR);
 }
 
 

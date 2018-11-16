@@ -87,6 +87,10 @@ protected:
     // //for afu walk
     // double curSpeed;
 
+    //add for afu strategy
+    // bool haveGetAgentForward;
+    // std::vector<VecPosition> ;
+
     double hoverTime;
     bool mInit;
     bool initBeamed;
@@ -236,7 +240,7 @@ protected:
     void getSkillsForKickType(int kickType, SkillType skillsForType[]);
 
     //add for afu 
-    void getAgentForward(std::vector<VecPosition> &pos,std::vector<int> &num,std::vector<double> angle,double R);
+    void getAgentForward(std::vector<VecPosition> &pos,std::vector<int> &num,std::vector<double> &angle,double R);
 
     SkillType demoKickingCircle();
 
