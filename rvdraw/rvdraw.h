@@ -36,6 +36,7 @@
 #include <boost/lexical_cast.hpp>
 #include <sstream>
 #include <iomanip>
+#include "../math/vecposition.h"
 
 #define ROBOVIS_PORT "32769"
 
@@ -199,9 +200,13 @@ public:
 
     void drawCircle(string name, double x, double y, double radius,
                     RVSender::Color c=(RVSender::Color)uNum);
+    void drawCircle(string name,VecPosition &p, double radius,
+                          RVSender::Color c=(RVSender::Color)uNum);
     void drawCircle(string name, double x, double y, double radius, float r, float g, float b);
 
     void drawLine(string name, double x1, double y1, double x2, double y2,
+                  RVSender::Color c=(RVSender::Color)uNum);
+    void drawLine(string name, VecPosition& p1, VecPosition& p2,
                   RVSender::Color c=(RVSender::Color)uNum);
     void drawLine(string name, double x1, double y1, double x2, double y2, float r, float g, float b);
 
@@ -210,6 +215,8 @@ public:
     void drawText(string name, string text, double x, double y, float r, float g, float b);
 
     void drawPoint(string name, double x, double y, double radius,
+                   RVSender::Color c=(RVSender::Color)uNum);
+    void drawPoint(string name, VecPosition& p, double radius,
                    RVSender::Color c=(RVSender::Color)uNum);
     void drawPoint(string name, double x, double y, double radius, float r, float g, float b);
 
@@ -238,7 +245,6 @@ public:
     void drawCircle(double x, double y, double radius,
                     RVSender::Color c=(RVSender::Color)uNum);
     void drawCircle(double x, double y, double radius, float r, float g, float b);
-
     void drawLine(double x1, double y1, double x2, double y2,
                   RVSender::Color c=(RVSender::Color)uNum);
     void drawLine(double x1, double y1, double x2, double y2, float r, float g, float b);

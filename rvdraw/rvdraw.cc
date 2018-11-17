@@ -261,6 +261,16 @@ void RVSender::drawCircle(string name, double x, double y, double radius,
     drawCircle(name, x, y, radius, r, g, b);
 }
 
+void RVSender::drawCircle(string name,VecPosition &p, double radius,
+                          RVSender::Color c) {
+    if (!isInit()) {
+        return;
+    }
+    float r, g, b;
+    getColor(c, side, r, g, b);
+    drawCircle(name, p.getX(), p.getY(), radius, r, g, b);
+}
+
 void RVSender::drawCircle(string name, double x, double y, double radius, float r, float g, float b) {
     if (!isInit()) {
         return;
@@ -306,6 +316,16 @@ void RVSender::drawLine(string name, double x1, double y1, double x2, double y2,
     float r, g, b;
     getColor(c, side, r, g, b);
     drawLine(name, x1, y1, x2, y2, r, g, b);
+}
+
+void RVSender::drawLine(string name,VecPosition& p1, VecPosition& p2,
+                        RVSender::Color c) {
+    if (!isInit()) {
+        return;
+    }
+    float r, g, b;
+    getColor(c, side, r, g, b);
+    drawLine(name, p1.getX(), p1.getY(), p2.getX(), p2.getY(), r, g, b);
 }
 
 void RVSender::drawLine(string name, double x1, double y1, double x2, double y2,
@@ -408,6 +428,16 @@ void RVSender::drawPoint(string name, double x, double y, double radius,
     float r, g, b;
     getColor(c, side, r, g, b);
     drawPoint(name, x, y, radius, r, g, b);
+}
+
+void RVSender::drawPoint(string name, VecPosition& p, double radius,
+                         RVSender::Color c) {
+    if (!isInit()) {
+        return;
+    }
+    float r, g, b;
+    getColor(c, side, r, g, b);
+    drawPoint(name, p.getX() , p.getY(), radius, r, g, b);
 }
 
 void RVSender::drawPoint(string name, double x, double y, double radius,

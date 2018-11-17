@@ -517,6 +517,8 @@ sstream
 -
 iomanip
 -
+../math/vecposition.h
+/home/yun/桌面/uta_new_1114/math/vecposition.h
 
 /home/yun/桌面/uta_new_1114/servercomm/primitives.cc
 ../behaviors/naobehavior.h

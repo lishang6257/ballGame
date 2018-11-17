@@ -240,7 +240,8 @@ protected:
     void getSkillsForKickType(int kickType, SkillType skillsForType[]);
 
     //add for afu 
-    void getAgentForward(std::vector<VecPosition> &pos,std::vector<int> &num,std::vector<double> &angle,double R);
+    void getAgentForward(double angleLeft,double angleRight,double R,std::vector<VecPosition> &pos,std::vector<int> &num,std::vector<double> &angle)
+;
 
     SkillType demoKickingCircle();
 

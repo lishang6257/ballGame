@@ -926,8 +926,10 @@ SkillType NaoBehavior::goToTargetRelative(const VecPosition& targetLoc, const do
     std::vector<VecPosition> pos;
     std::vector<int> num;
     std::vector<double> angle;
-    getAgentForward(pos,num,angle,nearR);
-    if(pos.size() > 1){//有其他人阻拦
+
+    double angleSearch = getLimitingAngleForward()*.9;
+    getAgentForward(angleSearch , angleSearch,nearR , pos,num,angle);
+    if(pos.size() > 1){//有其他人阻拦[认为不安全人]
         //找到间隔最大的位置，判定是否可以通过
         double max = angle[0],maxId = 0;
         for(unsigned int i = 1;i < pos.size();i ++){
@@ -949,23 +951,32 @@ SkillType NaoBehavior::goToTargetRelative(const VecPosition& targetLoc, const do
 }
 
 // lishang6257:获取当前球员在可移动的两个最大角度所构成的长度为R的扇形内的所有球员，并按照与向左旋转的夹角大小排序
-void NaoBehavior::getAgentForward(std::vector<VecPosition> &pos,std::vector<int> &num,std::vector<double> &angle,double R)
+
+//angleLeft:左侧探查角度[positive]
+//angleRight:右侧探查角度[positive]
+//R : 探查的深度（扇形半径）
+//pos : 命中扇形的球员位置信息
+//num : 命中扇形的球员unum
+//angle:命中扇形的球员与做标志线的角度
+
+void NaoBehavior::getAgentForward(double angleLeft,double angleRight,double R,std::vector<VecPosition> &pos,std::vector<int> &num,std::vector<double> &angle)
 {
     VecPosition myPos = worldModel->getMyPosition();
     VecPosition flagPosL = VecPosition(R,0,0);
-    flagPosL = flagPosL.rotateAboutZ(- worldModel->getMyAngDeg() - getLimitingAngleForward())*1.1 + me;
+    flagPosL = flagPosL.rotateAboutZ(- worldModel->getMyAngDeg() - angleLeft) + myPos;
 
     VecPosition flagPosR = VecPosition(R,0,0);
-    flagPosR = flagPosR.rotateAboutZ(- worldModel->getMyAngDeg() + getLimitingAngleForward())*1.1 + me;
+    flagPosR = flagPosR.rotateAboutZ(- worldModel->getMyAngDeg() + angleRight) + myPos;
+
 
     double angleLR = me.getAngleBetweenPoints(flagPosR,flagPosL);
     double angleThreshold = 5;//
 
-    // worldModel->getRVSender()->clear(); // erases drawings from previous cycle
     worldModel->getRVSender()->drawLine("FlagL"
-        ,me.getX(), me.getY(), (flagPosL).getX(), (flagPosL).getY(),RVSender::RED);
+        ,myPos, flagPosL,RVSender::RED);
     worldModel->getRVSender()->drawLine("FlagR"
-        ,me.getX(), me.getY(), (flagPosR).getX(), (flagPosR).getY(),RVSender::VIOLET);
+        ,myPos, flagPosR,RVSender::VIOLET);
+    worldModel->getRVSender()->drawCircle("Area",me,R,RVSender::BLUE);
 
 
 
@@ -981,6 +992,7 @@ void NaoBehavior::getAgentForward(std::vector<VecPosition> &pos,std::vector<int>
                 tmp = teammate->pos;
                 double angleL = myPos.getAngleBetweenPoints(tmp,flagPosL),
                        angleR = myPos.getAngleBetweenPoints(tmp,flagPosR);
+
 
                 // worldModel->getRVSender()->clear();
                 worldModel->getRVSender()->drawPoint("searchA", tmp.getX(), tmp.getY(), 30.0f, RVSender::RED);
