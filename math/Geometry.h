@@ -71,6 +71,8 @@ public:
     Point2D( double       xx = 0,
              double       yx = 0,
              CoordSystemT cs = CARTESIAN);
+    Point2D( const VecPosition &p,
+            CoordSystemT cs = CARTESIAN);
 
     // overloaded arithmetic operators
     Point2D operator -  () const;
@@ -385,7 +387,8 @@ public:
     Circle();
     Circle( const Point2D& pCenter,
             double  radius );
-
+    Circle( const VecPosition& p,
+            double  radius );
     // output operator
     friend std::ostream& operator << ( std::ostream &os,
                                        Circle c );
@@ -410,6 +413,8 @@ public:
                                   Point2D *p1,
                                   Point2D *p2 ) const;
     double getIntersectionArea  ( Circle c ) const;
+    bool haveIntersectionWithLine( Point2D &p1, Point2D &p2 );
+
 
 } ;
 

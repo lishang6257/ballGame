@@ -118,6 +118,14 @@ pkbehaviors.h
 naobehavior.h
 /home/yun/桌面/uta_new_1114/behaviors/naobehavior.h
 
+/home/yun/桌面/uta_new_1114/behaviors/rrtAvoidObstacle.cc
+naobehavior.h
+/home/yun/桌面/uta_new_1114/behaviors/naobehavior.h
+iostream
+-
+sys/time.h
+-
+
 /home/yun/桌面/uta_new_1114/behaviors/strategy.cc
 naobehavior.h
 /home/yun/桌面/uta_new_1114/behaviors/naobehavior.h

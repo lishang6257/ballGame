@@ -45,6 +45,40 @@ struct WalkVelocity
     }
 };
 
+// TODO：随机增长树的节点（节点评估函数）
+struct vecPositionValue
+{
+    VecPosition pos;
+    double value;
+
+    vecPositionValue() : pos(VecPosition(0,0)) ,value(0) {}
+
+    vecPositionValue(VecPosition p,double v) : pos(p),value(v) {}
+
+    inline bool operator > ( const vecPositionValue &p ) const {
+        return value > p.value;
+    }
+
+    inline bool operator < ( const vecPositionValue &p ) const {
+         return value < p.value;
+    }
+
+    inline bool operator == ( const vecPositionValue &p ) const {
+         return value == p.value;
+    }
+
+    inline bool operator != ( const vecPositionValue &p ) const {
+         return value != p.value;
+    }
+
+    friend std::ostream& operator<<(std::ostream &out, const vecPositionValue& v)
+    {
+        out << "vecPositionValue : " << v.pos << "  : " << v.value;
+        return out;
+    }
+};
+
+
 class NaoBehavior : public Behavior {
     friend class KickClassifier;
 protected:
@@ -239,9 +273,20 @@ protected:
     double getStdNameParameter(const SkillType kick_skill, const std::string& parameter);
     void getSkillsForKickType(int kickType, SkillType skillsForType[]);
 
-    //add for afu 
-    void getAgentForward(double angleLeft,double angleRight,double R,std::vector<VecPosition> &pos,std::vector<int> &num,std::vector<double> &angle)
-;
+    //add for afu walk
+    void getAgentForward(double angleLeft,double angleRight,double R,
+                                std::vector<VecPosition> &pos,std::vector<int> &num,std::vector<double> &angle);
+    // void initRRT();
+    void buildRRT(std::vector<VecPosition> paths,VecPosition &startPoint,VecPosition &goal,
+                                std::vector<VecPosition> &obstacles,double R,
+                                int maxtIeration = 500,double increasedStep = 0.2);
+    // bool isFeasiblePoint();
+
+    double agentsConnectDistance(std::vector<VecPosition> &obstacles,std::vector<int> &num,VecPosition &p1,VecPosition &p2,
+                                                double PROXIMITY_THRESH,bool avoidTeammate = true, bool avoidOpponent = true);
+    void buildDijkstra(std::vector<VecPosition> &paths,VecPosition &startPoint,VecPosition &goal,
+                                std::vector<VecPosition> &obstacles,std::vector<int> &num,double searchR,
+                                double PROXIMITY_THRESH,bool avoidTeammate = true, bool avoidOpponent = true);
 
     SkillType demoKickingCircle();
 

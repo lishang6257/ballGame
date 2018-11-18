@@ -59,7 +59,8 @@ set(SRCS
   behaviors/behavior.cc
   behaviors/naobehavior.cc
   behaviors/checkfall.cc 
-  behaviors/kicking.cc 
+  behaviors/kicking.cc
+  behaviors/rrtAvoidObstacle.cc
   behaviors/strategy.cc
   behaviors/pkbehaviors.cc
   behaviors/gazebobehavior.cc

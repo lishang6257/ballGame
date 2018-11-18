@@ -317,14 +317,22 @@ public:
     //    double             getAngleBetweenPoints  ( const VecPosition &p1,
     //				              const VecPosition &p2          );
 
+    //lishang6257 : fAllowOver180Turn = True [适用于z==0情况]: 原点与p1连线为标志轴，顺时针方向为正方向[0,360)
     inline double getAngleBetweenPoints( const VecPosition &p1,
-                                         const VecPosition &p2 ) {
-
+                                        const VecPosition &p2,bool fAllowOver180Turn = false ) {
         VecPosition v1 = *this - p1;
         VecPosition v2 = *this - p2;
         VecPosition vec = v1 * v2;
         double dotProduct = vec.getX() + vec.getY() + vec.getZ();
-        return fabs( normalizeAngle( acosDeg( dotProduct / v1.getMagnitude() / v2.getMagnitude() ) ) );
+        if(!fAllowOver180Turn)
+            return fabs( normalizeAngle( acosDeg( dotProduct / v1.getMagnitude() / v2.getMagnitude() ) ) );
+        else{
+            double a = p1.m_y - m_y,b = m_x - p1.m_x,c = p1.m_x*m_y - p1.m_y*m_x;
+            if(a*p2.m_x + b*p2.m_y + c < 0) 
+                return 360 - fabs( normalizeAngle( acosDeg( dotProduct / v1.getMagnitude() / v2.getMagnitude() ) ) ) ;
+            else 
+                return fabs( normalizeAngle( acosDeg( dotProduct / v1.getMagnitude() / v2.getMagnitude() ) ) );
+        }
     }
 
     //static class methods

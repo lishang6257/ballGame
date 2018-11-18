@@ -159,6 +159,11 @@ Point2D::Point2D( double xx, double yy, CoordSystemT cs ) {
     setPoint( xx, yy, cs );
 }
 
+Point2D::Point2D( const VecPosition &p, CoordSystemT cs ) {
+    setPoint( p.getX(),p.getY(), cs );
+}
+
+
 /*! Overloaded version of unary minus operator for Point2Ds. It returns the
   negative Point2D, i.e. both the x- and y-coordinates are multiplied by
   -1. The current Point2D itself is left unchanged.
@@ -707,7 +712,7 @@ bool Point2D::pointIsBetweenY( const Point2D &p1, const Point2D &p2 ) const {
 
 
 /**
- * Function returns true iff the input point is in between the two
+ * Function returns true if the input point is in between the two
  * points provided as input. ORDER IS IMPORTANT => the test point is
  * checked for being greater than the first point and lesser than the
  * second point...
@@ -1840,6 +1845,10 @@ Circle::Circle( const Point2D& pCenter, double radius )
     setCircle( pCenter, radius );
 }
 
+Circle::Circle( const VecPosition& pCenter, double radius )
+{
+    setCircle( Point2D(pCenter), radius );
+}
 /*! This is the constructor of a circle which initializes a circle with a
   radius of zero. */
 Circle::Circle()
@@ -1996,6 +2005,22 @@ int Circle::getIntersectionPoints( Circle c, Point2D *p1, Point2D *p2) const
 
     return (arg < 0.0) ? 0 : ((arg == 0.0 ) ? 1 :  2);
 }
+
+//lishang6257:函数返回线段是否与圆有交点
+//特别的：两点均在圆内仍返回真值
+bool Circle::haveIntersectionWithLine( Point2D &p1, Point2D &p2 ) 
+{
+    if( getCenter().getDistanceTo( p1 ) < getRadius() || getCenter().getDistanceTo( p2 ) < getRadius() ) return true;
+
+    Line2D l(p1,p2);
+    if(l.getDistanceToPoint(getRadius()) > getRadius()) return false;
+
+    Point2D centerProjection = l.getPointOnLineClosestTo( getCenter() );//圆心在直线上的投影点
+
+    if(  fabs(centerProjection.getDistanceTo(p1) + centerProjection.getDistanceTo(p2) - p1.getDistanceTo(p2)) < EPSILON ) return true;
+    return false;
+}
+
 
 /*! This method returns the size of the intersection area of two circles.
   \param c circle with which intersection should be determined

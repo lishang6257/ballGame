@@ -885,7 +885,6 @@ SkillType NaoBehavior::getWalk(WalkRequestBlock::ParamSet paramSet, const double
 
 // tuned by liahsng6257：add speed strategy
 // tuned by lisahng6257: avoid obstacle
-
 SkillType NaoBehavior::goToTargetRelative(const VecPosition& targetLoc, const double& targetRot, const double speed, bool fAllowOver180Turn, WalkRequestBlock::ParamSet paramSet)
 {
     bool whetherUseNewAvoidObstacleStrategy;
@@ -898,7 +897,7 @@ SkillType NaoBehavior::goToTargetRelative(const VecPosition& targetLoc, const do
     
     walkSpeed = trim(walkSpeed, 0.1, 1);
 
-    double dis = targetLoc.getMagnitude(); 
+    double dis = targetLoc.getMagnitude();
     
     //需要优化的参数
     double nearR = 1.5;
@@ -906,6 +905,7 @@ SkillType NaoBehavior::goToTargetRelative(const VecPosition& targetLoc, const do
     double startAecelerateInterval = 0.3,lastSpeed = worldModel->getLastSpeed();
     
     /*******************速度模型***************************/
+    //lishang6257:后期考虑用高阶函数拟合[机器学习系数]，目前使用匀变速模型
     //加速模型
     // namedParams.find("afuwalk_start_decelerate_distance")
     if( walkSpeed - lastSpeed > startAecelerateInterval)  walkSpeed = lastSpeed + startAecelerateInterval;
@@ -951,7 +951,6 @@ SkillType NaoBehavior::goToTargetRelative(const VecPosition& targetLoc, const do
 }
 
 // lishang6257:获取当前球员在可移动的两个最大角度所构成的长度为R的扇形内的所有球员，并按照与向左旋转的夹角大小排序
-
 //angleLeft:左侧探查角度[positive]
 //angleRight:右侧探查角度[positive]
 //R : 探查的深度（扇形半径）
@@ -959,9 +958,11 @@ SkillType NaoBehavior::goToTargetRelative(const VecPosition& targetLoc, const do
 //num : 命中扇形的球员unum
 //angle:命中扇形的球员与做标志线的角度
 
+
 void NaoBehavior::getAgentForward(double angleLeft,double angleRight,double R,std::vector<VecPosition> &pos,std::vector<int> &num,std::vector<double> &angle)
 {
     VecPosition myPos = worldModel->getMyPosition();
+    myPos.setZ(0);
     VecPosition flagPosL = VecPosition(R,0,0);
     flagPosL = flagPosL.rotateAboutZ(- worldModel->getMyAngDeg() - angleLeft) + myPos;
 
@@ -990,34 +991,30 @@ void NaoBehavior::getAgentForward(double angleLeft,double angleRight,double R,st
             if ( teammate->validPosition) {
                 //判断是否在扇形区域，并从小到大插入
                 tmp = teammate->pos;
-                double angleL = myPos.getAngleBetweenPoints(tmp,flagPosL),
-                       angleR = myPos.getAngleBetweenPoints(tmp,flagPosR);
-
+                tmp.setZ(0);
+                double angleD = myPos.getAngleBetweenPoints(flagPosL,tmp,true);
 
                 // worldModel->getRVSender()->clear();
                 worldModel->getRVSender()->drawPoint("searchA", tmp.getX(), tmp.getY(), 30.0f, RVSender::RED);
-                if(tmp.getDistanceTo(myPos) > R || abs(angleL + angleR - angleLR) > angleThreshold) continue; //不在扇形内
-                
+                if(tmp.getDistanceTo(myPos) > R || (angleLR - angleD) < -angleThreshold) continue; //不在扇形内
                 // cout << "agnent " << i << " " << angleL << "L:R" << angleR << ":LR : " << angleLR << ":" << angleL+angleR << "\n";
-                // if(abs(angleL + angleR - angleLR) > angleThreshold) continue;
-
  
                 worldModel->getRVSender()->drawPoint("blockA", tmp.getX(), tmp.getY(), 30.0f, RVSender::BLUE);
                 // cout << "blockA " << i << "\n";
                 //插入[二分思考中]考虑到组到人数可能不多，无需二分
                 unsigned int j;
                 for(j = 0;j< pos.size();j ++){//以left为标志杆
-                    if(angleL < angle[j]){
+                    if(angleD < angle[j]){
                         pos.insert(pos.begin() + j,tmp);
                         num.insert(num.begin() + j,i);
-                        angle.insert(angle.begin() + j,angleL);
+                        angle.insert(angle.begin() + j,angleD);
                         break;
                     }
                 }
                 if(j == pos.size()){
                     pos.push_back(tmp);
                     num.push_back(i);
-                    angle.push_back(angleL);
+                    angle.push_back(angleD);
                 }
             } else {
                 continue;
@@ -1032,37 +1029,37 @@ void NaoBehavior::getAgentForward(double angleLeft,double angleRight,double R,st
         if (teammate->validPosition) {
             //判断是否在扇形区域，并从小到大插入
             tmp = teammate->pos;
-            double angleL = myPos.getAngleBetweenPoints(tmp,flagPosL),
-                    angleR = myPos.getAngleBetweenPoints(tmp,flagPosR);
+            tmp.setZ(0);
+            double angleD = myPos.getAngleBetweenPoints(flagPosL,tmp,true);
 
             // worldModel->getRVSender()->clear();
-            worldModel->getRVSender()->drawPoint("searchB", tmp.getX(), tmp.getY(), 30.0f, RVSender::RED);        
-            if(tmp.getDistanceTo(myPos) > R || abs(angleL + angleR - angleLR) > angleThreshold ) continue; //不在扇形内
+            worldModel->getRVSender()->drawPoint("searchB", tmp, 30.0f, RVSender::RED);        
+            if(tmp.getDistanceTo(myPos) > R || (angleLR - angleD) < -angleThreshold ) continue; //不在扇形内
             //插入[二分思考中]
             worldModel->getRVSender()->drawPoint("blockB", tmp.getX(), tmp.getY(), 30.0f, RVSender::BLUE);
             // cout << "blockB " << i << "\n";
             unsigned int j;
             for(j = 0;j < pos.size();j ++){//以left为标志杆
-                if(angleL < angle[j]){
+                if(angleD < angle[j]){
                     pos.insert(pos.begin() + j,tmp);
                     num.insert(num.begin() + j,i);
-                    angle.insert(angle.begin() + j,angleL);
+                    angle.insert(angle.begin() + j,angleD);
                     break;
                 }
             }
             if(j == pos.size()){
                     pos.push_back(tmp);
                     num.push_back(i);
-                    angle.push_back(angleL);
+                    angle.push_back(angleD);
             }
         } else {
             continue;
         }
     }
 
-    pos.push_back(flagPosR);
-    num.push_back(-1);
-    angle.push_back(angleLR);
+    // pos.push_back(flagPosR);
+    // num.push_back(-1);
+    // angle.push_back(angleLR);
 }
 
 
@@ -1090,6 +1087,7 @@ SkillType NaoBehavior::goToTarget(const VecPosition &target) {
     {
         return goToTargetRelative(VecPosition(), angle);
     }
+    //方案二：底层使用RRT算法优化，而不去刻意决定方向
     // [patmac] Speed/quickness adjustment
     // For now just go full speed in the direction of the target and also turn
     // toward our heading.

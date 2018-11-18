@@ -44,16 +44,16 @@ SkillType NaoBehavior::selectSkill() {
     // worldModel->getRVSender()->drawPoint("ball", ball.getX(), ball.getY(), 10.0f, RVSender::MAGENTA);
     // worldModel->getRVSender()->drawPoint("dir " + worldModel->getUNum() ,pos.getX(), pos.getY(), 10);
 
-    VecPosition dir = VecPosition(1,0,0);
+    // VecPosition dir = VecPosition(1,0,0);
     // cout << worldModel->getMyAngDeg() << "myangle \n";
-    dir = dir.rotateAboutZ(-worldModel->getMyAngDeg() + 90);
+    // dir = dir.rotateAboutZ(-worldModel->getMyAngDeg() + 90);
 
-    worldModel->getRVSender()->drawLine("My1"
-        ,me.getX(), me.getY(), (me+dir).getX(), (me+dir).getY(),RVSender::BLUE);
-    worldModel->getRVSender()->drawLine("X" 
-        ,me.getX(), me.getY(), (me+myXDirection).getX(), (me+myXDirection).getY(),RVSender::PINK);
-     worldModel->getRVSender()->drawLine("Y" 
-        ,me.getX(), me.getY(), (me+myYDirection).getX(), (me+myYDirection).getY(),RVSender::ORANGE);
+    // worldModel->getRVSender()->drawLine("My1"
+    //     ,me.getX(), me.getY(), (me+dir).getX(), (me+dir).getY(),RVSender::BLUE);
+    // worldModel->getRVSender()->drawLine("X" 
+    //     ,me.getX(), me.getY(), (me+myXDirection).getX(), (me+myXDirection).getY(),RVSender::PINK);
+    //  worldModel->getRVSender()->drawLine("Y" 
+    //     ,me.getX(), me.getY(), (me+myYDirection).getX(), (me+myYDirection).getY(),RVSender::ORANGE);
     
 
     // ### Demo Behaviors ###
@@ -80,13 +80,48 @@ SkillType NaoBehavior::selectSkill() {
     //   return goToTargetRelative(VecPosition(), angle);
     // } else {
     //   return SKILL_STAND;
-    // }
-    if(worldModel->getUNum() == 1) 
-    return goToTargetRelative(VecPosition(),0);
+    // // }
+    // if(worldModel->getUNum() == 1) 
+    // return goToTargetRelative(VecPosition(),0);
 
-    if(worldModel->getUNum() == 2) 
-    return goToTarget(ball);
+    // if(worldModel->getUNum() == 2) 
+    // return goToTarget(ball);
     
+
+    // //test for rrt
+    if(worldModel->getUNum() == 1) {
+    std::vector<VecPosition> pos;
+    std::vector<int> num;
+    std::vector<double> angle;
+
+    double searchR = 2,nearR = 0.5;
+
+    double angleSearch = getLimitingAngleForward()*.9;
+    getAgentForward(angleSearch , angleSearch,searchR , pos,num,angle);
+
+    std::vector<VecPosition> paths;
+
+
+    //test circle.haveIntersectionWithLine();
+    // SIM::Circle c(me,nearR);
+    // SIM::Point2D p1tmp(ball),p2tmp(VecPosition(0,0,0));
+    // VecPosition p(0,0,0);
+    // worldModel->getRVSender()->drawLine("tLine",ball,p);
+    // cout << c.haveIntersectionWithLine(p1tmp,p2tmp) << "\n";
+
+
+
+
+    // buildRRT(paths,me,ball,pos,nearR);
+    // VecPosition target = collisionAvoidance(true /*Avoid teamate*/, true /*Avoid opponent*/, false /*Avoid ball*/, .5, .5, ball,
+    //                                 false /*fKeepDistance*/);
+    // return goToTarget(target);
+
+        buildDijkstra(paths,me,ball,pos,num,searchR,nearR);
+    }
+
+    // VecPosition p1(0,0,0),p2(0,1,0),p3(1,0,0),p4(sqrt(2),-sqrt(2),0),p5(-sqrt(2),-sqrt(2),0),p6(-sqrt(2),sqrt(2),0),p7(0,-1,0);
+    // cout << p1.getAngleBetweenPoints(p2,p6,true) << "\n";
     return SKILL_STAND;
 
     // Walk to ball while always facing forward

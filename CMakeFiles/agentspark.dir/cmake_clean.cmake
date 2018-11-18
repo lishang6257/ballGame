@@ -4,6 +4,7 @@ file(REMOVE_RECURSE
   "CMakeFiles/agentspark.dir/behaviors/naobehavior.cc.o"
   "CMakeFiles/agentspark.dir/behaviors/checkfall.cc.o"
   "CMakeFiles/agentspark.dir/behaviors/kicking.cc.o"
+  "CMakeFiles/agentspark.dir/behaviors/rrtAvoidObstacle.cc.o"
   "CMakeFiles/agentspark.dir/behaviors/strategy.cc.o"
   "CMakeFiles/agentspark.dir/behaviors/pkbehaviors.cc.o"
   "CMakeFiles/agentspark.dir/behaviors/gazebobehavior.cc.o"
