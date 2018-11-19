@@ -59,18 +59,78 @@ void NaoBehavior::buildRRT(std::vector<VecPosition> paths,VecPosition &startPoin
 //obstacles ： 搜索范围内的所有障碍物
 //num ：  搜索范围内的所有障碍物对应WorldObject中的枚举值
 //p1,p2 : 待求两点之间距离
+//为了适应多种情况
+//method :
+//method = 1 : 直线模式[障碍物间的阻碍按两点之间的直线计算]
+//method = 2 : 矩形模式[障碍物按矩形[垂直两点的连线的两条直径]计算]
+//method = 3 : 扇形模式[障碍物以p1为圆心，连线为半径的的扇形]
 
 double NaoBehavior::agentsConnectDistance(std::vector<VecPosition> &obstacles,std::vector<int> &num,VecPosition &p1,VecPosition &p2,
-												double PROXIMITY_THRESH,bool avoidTeammate, bool avoidOpponent)
+												double PROXIMITY_THRESH,int method,bool avoidTeammate, bool avoidOpponent)
 {
 	SIM::Point2D p1tmp(p1),p2tmp(p2);
-	for(unsigned int i = 0;i < obstacles.size();i ++){
-		if(obstacles[i] == p1 || obstacles[i] == p2) continue;
-		SIM::Circle c(obstacles[i],PROXIMITY_THRESH);
-		if(c.haveIntersectionWithLine(p1tmp,p2tmp)) return INFINITY;
+	if(p1.getDistanceTo(p2) < PROXIMITY_THRESH*1.5) return INFINITY;
+	switch(method){
+		case 1 :
+			//直线模式
+			for(unsigned int i = 0;i < obstacles.size();i ++){
+				if( obstacles[i] == p1 || obstacles[i] == p2 ) continue;
+				if( !avoidTeammate && num[i] >= WO_TEAMMATE1 && num[i] <= WO_TEAMMATE11 ) continue;
+				if( !avoidOpponent && num[i] >= WO_OPPONENT1 && num[i] <= WO_OPPONENT11 ) continue;
+				SIM::Circle c(obstacles[i],PROXIMITY_THRESH);
+				if(c.haveIntersectionWithLine(p1tmp,p2tmp)) return INFINITY;
+			}
+			return p1tmp.getDistanceTo(p2tmp);
+		case 2 :
+			//矩形模式
+			for(unsigned int i = 0;i < obstacles.size();i ++){
+				if( obstacles[i] == p1 || obstacles[i] == p2 ) continue;
+				if( !avoidTeammate && num[i] >= WO_TEAMMATE1 && num[i] <= WO_TEAMMATE11 ) continue;
+				if( !avoidOpponent && num[i] >= WO_OPPONENT1 && num[i] <= WO_OPPONENT11 ) continue;
+				VecPosition tmp = p2- p1;
+				tmp.setMagnitude(1);//单位方向向量
+
+				SIM::Point2D normal = SIM::Point2D(-tmp.getY(),tmp.getX());//单位法向量
+				SIM::Circle c(obstacles[i],PROXIMITY_THRESH);
+				SIM::Point2D t1 = p1tmp + normal*PROXIMITY_THRESH,t2 = p2tmp + normal*PROXIMITY_THRESH;
+				worldModel->getRVSender()->drawLine("line21",t1.getX(),t1.getY(),t2.getX(),t2.getY());
+				if(c.haveIntersectionWithLine(t1,t2)) return INFINITY;
+
+				normal = SIM::Point2D(tmp.getY(),-tmp.getX());//单位法向量
+				c = SIM::Circle(obstacles[i],PROXIMITY_THRESH);
+				t1 = p1tmp + normal*PROXIMITY_THRESH;t2 = p2tmp + normal*PROXIMITY_THRESH;
+				worldModel->getRVSender()->drawLine("line22",t1.getX(),t1.getY(),t2.getX(),t2.getY());
+				if(c.haveIntersectionWithLine(t1,t2)) return INFINITY;
+			}
+			return p1tmp.getDistanceTo(p2tmp);
+		case 3 :
+			//扇形模式
+			for(unsigned int i = 0;i < obstacles.size();i ++){
+				if( obstacles[i] == p1 || obstacles[i] == p2 ) continue;
+				if( !avoidTeammate && num[i] >= WO_TEAMMATE1 && num[i] <= WO_TEAMMATE11 ) continue;
+				if( !avoidOpponent && num[i] >= WO_OPPONENT1 && num[i] <= WO_OPPONENT11 ) continue;
+				VecPosition tmp = p2- p1;
+				tmp.setMagnitude(1);//单位方向向量
+
+				SIM::Point2D normal = SIM::Point2D(-tmp.getY(),tmp.getX());//单位法向量
+				SIM::Circle c(obstacles[i],PROXIMITY_THRESH);
+				SIM::Point2D t2 = p2tmp + normal*PROXIMITY_THRESH;
+				worldModel->getRVSender()->drawLine("line31",p1.getX(),p1.getY(),t2.getX(),t2.getY());
+				if(c.haveIntersectionWithLine(t2,p1tmp)) return INFINITY;
+
+				normal = SIM::Point2D(tmp.getY(),-tmp.getX());//单位法向量
+				c = SIM::Circle(obstacles[i],PROXIMITY_THRESH);
+				t2 = p2tmp + normal*PROXIMITY_THRESH;
+				worldModel->getRVSender()->drawLine("line32",p1.getX(),p1.getY(),t2.getX(),t2.getY());
+				if(c.haveIntersectionWithLine(t2,p1tmp)) return INFINITY;
+			}
+			return p1tmp.getDistanceTo(p2tmp);
+		default:
+			return INFINITY;
+
 	}
-	return p1tmp.getDistanceTo(p2tmp);
 }
+
 /*
 lishang6257
 设计目的（远程避障）：
@@ -81,15 +141,13 @@ lishang6257
 在UT的测试中,近距离的避障可以达到较好的效果，但是当通道过于狭窄时，容易造成振荡现象
 思考如下：缩小PROXIMITY_THRESH的值
 */
-void NaoBehavior::buildDijkstra(std::vector<VecPosition> &paths,VecPosition &startPoint,VecPosition &goal,
+VecPosition NaoBehavior::buildDijkstraForLongDistanceAvoid(std::vector<VecPosition> &paths,VecPosition &startPoint,VecPosition &goal,
                                 std::vector<VecPosition> &obstacles,std::vector<int> &num,double searchR,
                                 double PROXIMITY_THRESH,bool avoidTeammate, bool avoidOpponent)
 {
-	if(obstacles.size() == 0) return ;
+	if(obstacles.size() == 0) return goal;
 
-	obstacles.push_back(goal);//将目标添加到邻接矩阵
-
-	int vexnum = obstacles.size() + 1;
+	int vexnum = obstacles.size() + 2;//将起点与终点加入邻接矩阵
 
 	double **adjacency = new double*[vexnum]; //第一维，
 	for(int i=0; i< vexnum; i++){
@@ -100,23 +158,31 @@ void NaoBehavior::buildDijkstra(std::vector<VecPosition> &paths,VecPosition &sta
 	double *value = new double[vexnum];
 	double *apath = new double[vexnum];//保存到达该节点的最短路径中做后一个节点
 
+	//初始化障碍物的邻接矩阵
 	for(unsigned int i = 0;i < obstacles.size();i ++){
 		for(unsigned int j = 0;j < obstacles.size();j ++){
 			if(i == j) continue;
-			adjacency[j+1][i+1] = adjacency[i+1][j+1] = agentsConnectDistance(obstacles,num,obstacles[i],obstacles[j],PROXIMITY_THRESH);
+			adjacency[j+1][i+1] = adjacency[i+1][j+1] = agentsConnectDistance(obstacles,num,obstacles[i],obstacles[j],PROXIMITY_THRESH,2/*矩形模式*/);
 		}
 	}
+	//初始化起点邻接矩阵
 	for(unsigned int i = 0;i < obstacles.size();i ++){
-		adjacency[0][i+1] = adjacency[i+1][0] = agentsConnectDistance(obstacles,num,obstacles[i],startPoint,PROXIMITY_THRESH);
+		adjacency[0][i+1] = adjacency[i+1][0] = agentsConnectDistance(obstacles,num,obstacles[i],startPoint,PROXIMITY_THRESH,2/*矩形模式*/);
+	}
+	//初始化终点的邻接矩阵
+	adjacency[vexnum-1][0] = adjacency[0][vexnum - 1] = agentsConnectDistance(obstacles,num,goal,startPoint,PROXIMITY_THRESH,3/*扇形模式*/);//起点与终点
+	for(unsigned int i = 0;i < obstacles.size();i ++){
+		adjacency[vexnum - 1][i+1] = adjacency[i+1][vexnum-1] = agentsConnectDistance(obstacles,num,goal,obstacles[i],PROXIMITY_THRESH,3/*扇形模式*/);
 	}
 
-	for(int i = 0;i < vexnum;i ++){
-		for(int j = 0;j < vexnum;j ++){
-			cout << adjacency[i][j] << "\t";
-		}
-		cout << "\n";
-	}
-	cout << "\n";
+
+	// for(int i = 0;i < vexnum;i ++){
+	// 	for(int j = 0;j < vexnum;j ++){
+	// 		cout << adjacency[i][j] << "\t";
+	// 	}
+	// 	cout << "\n";
+	// }
+	// cout << "\n";
 
 	//dijkstra
 	int begin = 1;//起点所在位置，从[1..vexnum]
@@ -148,6 +214,7 @@ void NaoBehavior::buildDijkstra(std::vector<VecPosition> &paths,VecPosition &sta
 	 	//cout << temp + 1 << "  "<<min << endl; 
 	 	//把temp对应的顶点加入到已经找到的最短路径的集合中 
 	 	visit[temp] = true; 
+	 	if(visit[vexnum - 1]) break;
 	 	++count; 
 	 	for (int i = 0; i < vexnum; i++){ 
 	 		//注意这里的条件adjacency[temp][i]!=INFINITY必须加，不然会出现溢出，从而造成程序异常 
@@ -158,9 +225,54 @@ void NaoBehavior::buildDijkstra(std::vector<VecPosition> &paths,VecPosition &sta
 	 		} 
 	 	} 
 	} 
-	for(int i = 0;i < vexnum;i ++) cout <<  apath[i] << "\t";
-	cout << "\n";
 
-	obstacles.erase(obstacles.end());//复原obstacles;
+	// for(int i = 0;i < vexnum;i ++) cout <<  apath[i] << "\t";
+	// cout << "\n";
+
+	count = vexnum - 1;
+	while(apath[count] != -1){
+		if(count == vexnum - 1)
+			paths.insert(paths.begin(),goal);
+		else 
+			paths.insert(paths.begin(),obstacles[count - 1]);
+		
+		count = apath[count];
+	}
+	paths.insert(paths.begin(),startPoint);
+
+	if(paths.size() > 1){//有路
+		VecPosition p2(paths[1]),p3;
+		if(paths.size() > 2) p3 = VecPosition(paths[2]);
+		else p3 = VecPosition(goal);
+		//求角平分向量
+		p3 = goal - p2;
+		p2 = startPoint - p2;
+		p2.setZ(0);p3.setZ(0);
+		p3.setMagnitude(1);p2.setMagnitude(1);
+		VecPosition res = p2+p3;
+		if( res != VecPosition(0,0,0) ){
+			res.setMagnitude(1);
+			res = paths[1]+res*PROXIMITY_THRESH;//假定最小为一
+			// res = collisionAvoidance(avoidTeammate /*teammate*/, avoidOpponent/*opponent*/, false/*ball*/, PROXIMITY_THRESH/*proximity thresh*/, PROXIMITY_THRESH/*collision thresh*/, res, true/*keepDistance*/);
+			return res;
+		}
+		// else if(rand()%2 > 0){
+		// 	cout << "bad\n";
+		// 	res =  paths[1]+VecPosition(-p2.getY(),p2.getX(),0)*PROXIMITY_THRESH; //p2,p3共线，随机取一个法向量
+		// 	res = collisionAvoidance(avoidTeammate /*teammate*/, avoidOpponent/*opponent*/, false/*ball*/, .8/*proximity thresh*/, .5/*collision thresh*/, res, true/*keepDistance*/);
+		// 	return res;
+		// }
+		else{
+			cout << "bad\n";
+			res =  paths[1]+VecPosition(p2.getY(),-p2.getX(),0)*PROXIMITY_THRESH;
+			// res = collisionAvoidance(avoidTeammate /*teammate*/, avoidOpponent/*opponent*/, false/*ball*/, PROXIMITY_THRESH/*proximity thresh*/, PROXIMITY_THRESH/*collision thresh*/, res, true/*keepDistance*/);
+			return res;
+		}
+
+
+	}
+	cout << "error\n";
+	return goal;
 
 }
+

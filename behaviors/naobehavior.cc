@@ -921,30 +921,30 @@ SkillType NaoBehavior::goToTargetRelative(const VecPosition& targetLoc, const do
         walkSpeed =  sqrt(1 - 2*a*(startDecelerateDistance - dis));
     }
 
-    if(worldModel->getUNum() == 1){
-    //局部避障算法
-    std::vector<VecPosition> pos;
-    std::vector<int> num;
-    std::vector<double> angle;
+    // if(worldModel->getUNum() == 1){
+    // //局部避障算法
+    // std::vector<VecPosition> pos;
+    // std::vector<int> num;
+    // std::vector<double> angle;
 
-    double angleSearch = getLimitingAngleForward()*.9;
-    getAgentForward(angleSearch , angleSearch,nearR , pos,num,angle);
-    if(pos.size() > 1){//有其他人阻拦[认为不安全人]
-        //找到间隔最大的位置，判定是否可以通过
-        double max = angle[0],maxId = 0;
-        for(unsigned int i = 1;i < pos.size();i ++){
-            if(angle[i] - angle[i-1] > max){
-                max = angle[i] - angle[i-1];
-                maxId = i;
-            }
-            if(num[i] == -1) break;
-        }
-        cout << maxId << " max " << max << "\n";
-        // cout << "gameTime : " <<  worldModel->getGameTime() << "length : " <<  pos.size() << "\n";
-        // for(unsigned int i = 0;i < angle.size();i ++ ) cout << angle[i] << " ";
-        // cout << " : angle end\n";
-    }
-    }
+    // double angleSearch = getLimitingAngleForward()*.9;
+    // getAgentForward(angleSearch , angleSearch,nearR , pos,num,angle);
+    // if(pos.size() > 1){//有其他人阻拦[认为不安全人]
+    //     //找到间隔最大的位置，判定是否可以通过
+    //     double max = angle[0],maxId = 0;
+    //     for(unsigned int i = 1;i < pos.size();i ++){
+    //         if(angle[i] - angle[i-1] > max){
+    //             max = angle[i] - angle[i-1];
+    //             maxId = i;
+    //         }
+    //         if(num[i] == -1) break;
+    //     }
+    //     cout << maxId << " max " << max << "\n";
+    //     // cout << "gameTime : " <<  worldModel->getGameTime() << "length : " <<  pos.size() << "\n";
+    //     // for(unsigned int i = 0;i < angle.size();i ++ ) cout << angle[i] << " ";
+    //     // cout << " : angle end\n";
+    // }
+    // }
     
 
     return getWalk(paramSet, walkDirection, walkRotation, walkSpeed, fAllowOver180Turn);

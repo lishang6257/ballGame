@@ -2013,7 +2013,7 @@ bool Circle::haveIntersectionWithLine( Point2D &p1, Point2D &p2 )
     if( getCenter().getDistanceTo( p1 ) < getRadius() || getCenter().getDistanceTo( p2 ) < getRadius() ) return true;
 
     Line2D l(p1,p2);
-    if(l.getDistanceToPoint(getRadius()) > getRadius()) return false;
+    if(l.getDistanceToPoint(getCenter()) > getRadius()) return false;
 
     Point2D centerProjection = l.getPointOnLineClosestTo( getCenter() );//圆心在直线上的投影点
 

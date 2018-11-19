@@ -89,21 +89,22 @@ SkillType NaoBehavior::selectSkill() {
     
 
     // //test for rrt
+    double searchR = 4,nearR = 0.5;
     if(worldModel->getUNum() == 1) {
     std::vector<VecPosition> pos;
     std::vector<int> num;
     std::vector<double> angle;
 
-    double searchR = 2,nearR = 0.5;
+    
 
     double angleSearch = getLimitingAngleForward()*.9;
-    getAgentForward(angleSearch , angleSearch,searchR , pos,num,angle);
+    getAgentForward(90 , 90,searchR , pos,num,angle);
 
     std::vector<VecPosition> paths;
 
 
     //test circle.haveIntersectionWithLine();
-    // SIM::Circle c(me,nearR);
+    // SIM::Circle c(me,searchR);
     // SIM::Point2D p1tmp(ball),p2tmp(VecPosition(0,0,0));
     // VecPosition p(0,0,0);
     // worldModel->getRVSender()->drawLine("tLine",ball,p);
@@ -117,7 +118,18 @@ SkillType NaoBehavior::selectSkill() {
     //                                 false /*fKeepDistance*/);
     // return goToTarget(target);
 
-        buildDijkstra(paths,me,ball,pos,num,searchR,nearR);
+        VecPosition res = buildDijkstraForLongDistanceAvoid(paths,me,ball,pos,num,searchR,nearR);
+        worldModel->getRVSender()->drawPoint("nextPoint",res,15,RVSender::MAGENTA);
+        for(unsigned int i = 1;i < paths.size();i ++){
+            worldModel->getRVSender()->drawPoint("path",paths[i],15,RVSender::RED);
+            worldModel->getRVSender()->drawLine("pathLine",paths[i],paths[i-1],RVSender::RED);
+        }
+        // if(paths.size() > 0)
+        //     return goToTarget( collisionAvoidanceApproach(nearR,0.2, ball,paths[0]) );
+        // return goToTarget(ball);
+        return goToTarget(res);
+    }else{
+        worldModel->getRVSender()->drawCircle("safeR",me,nearR);
     }
 
     // VecPosition p1(0,0,0),p2(0,1,0),p3(1,0,0),p4(sqrt(2),-sqrt(2),0),p5(-sqrt(2),-sqrt(2),0),p6(-sqrt(2),sqrt(2),0),p7(0,-1,0);

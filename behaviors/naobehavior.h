@@ -283,8 +283,8 @@ protected:
     // bool isFeasiblePoint();
 
     double agentsConnectDistance(std::vector<VecPosition> &obstacles,std::vector<int> &num,VecPosition &p1,VecPosition &p2,
-                                                double PROXIMITY_THRESH,bool avoidTeammate = true, bool avoidOpponent = true);
-    void buildDijkstra(std::vector<VecPosition> &paths,VecPosition &startPoint,VecPosition &goal,
+                                                double PROXIMITY_THRESH,int method = 1,bool avoidTeammate = true, bool avoidOpponent = true);
+    VecPosition buildDijkstraForLongDistanceAvoid(std::vector<VecPosition> &paths,VecPosition &startPoint,VecPosition &goal,
                                 std::vector<VecPosition> &obstacles,std::vector<int> &num,double searchR,
                                 double PROXIMITY_THRESH,bool avoidTeammate = true, bool avoidOpponent = true);
 
